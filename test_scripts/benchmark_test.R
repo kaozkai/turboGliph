@@ -21,7 +21,9 @@ fahrenheit_to_celsius <- function(temp_F) {
 }
 
 # 1000 calls
-result_microbenchmark <- microbenchmark(celsius_to_kelvin(-100:100), fahrenheit_to_celsius(-100:100), times=1000L)
+result_microbenchmark <- microbenchmark(celsius_to_kelvin(-100:100), 
+                                        fahrenheit_to_celsius(-100:100), 
+                                        times=1000L)
 
 print(result_microbenchmark)
 ggplot2::autoplot(result_microbenchmark)
@@ -31,7 +33,8 @@ ggplot2::autoplot(result_microbenchmark)
 ###########################################
 ## bench
 
-## useful to run benchmarks against parameter grids (but official example code not working)
+## useful to run benchmarks against parameter grids 
+## -> but official example code not working, maybe avoid
 ## can only compare similar functions, not different ones
 ##
 ##########################################
@@ -73,7 +76,8 @@ autoplot(results_benchmark)
 # won't work for different packages:
 ## bench::mark(celsius_to_kelvin(-100:100), fahrenheit_to_celsius(-100:100))
 ## Fehler: Each result must equal the first result:
-## `celsius_to_kelvin(-100:100)` does not equal `fahrenheit_to_celsius(-100:100)`
+## `celsius_to_kelvin(-100:100)` does not equal 
+## `fahrenheit_to_celsius(-100:100)`
 
 
 ###########################################
@@ -82,6 +86,7 @@ autoplot(results_benchmark)
 ## useful to compare larger code parts
 ## internal function, mark lines and use "Profile->Profile Selected Line(s)"
 ## profiles can be saved by wrapping code into function
+## can't compare function faster than 5ms
 ##
 ##########################################
 
@@ -91,7 +96,8 @@ set.seed(2020)
 ygroup <- data.frame(y = rnorm(mean = 100, sd = 20, n = n),
                      group = sample(LETTERS[1:16], size = n, replace = TRUE))
 
-simulation <- data.frame(replicate(100, rnorm(mean = 50, sd = 10, n = n) + 0.1 * ygroup$y))
+simulation <- data.frame(replicate(100, rnorm(mean = 50, sd = 10, n = n) +
+                                     0.1 * ygroup$y))
 simulation <- cbind(ygroup, simulation)
 rm(ygroup)
 
@@ -146,7 +152,8 @@ set.seed(2020)
 ygroup <- data.frame(y = rnorm(mean = 100, sd = 20, n = n),
                      group = sample(LETTERS[1:16], size = n, replace = TRUE))
 
-simulation <- data.frame(replicate(100, rnorm(mean = 50, sd = 10, n = n) + 0.1 * ygroup$y))
+simulation <- data.frame(replicate(100, rnorm(mean = 50, sd = 10, n = n) +
+                                     0.1 * ygroup$y))
 simulation <- cbind(ygroup, simulation)
 rm(ygroup)
 
