@@ -28,7 +28,7 @@ Suggests:
 VignetteBuilder: knitr
 NeedsCompilation: no
 Language: en-US
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 biocViews: FunctionalPrediction, MotifDiscovery, GeneticVariability, FunctionalGenomics, ImmunoOncology, Clustering
 BugReports: https://github.com/HetzDra/turboGliph/issues
 Depends: R (>= 4.1.0)
