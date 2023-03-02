@@ -5,7 +5,6 @@
 #' @return Returns checked / corrected parameters
 #' @export
 #'
-#' @examples
 parameter_check <- function(...){
   
   p <- list(...)
