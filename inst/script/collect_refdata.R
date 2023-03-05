@@ -1,3 +1,7 @@
+# This script describes how to download and prepare the reference (naive) 
+# CD8 and CD4 TCR repertoires of humans and mice. Both datasets are provided
+# by the maintainers of GLIPH2 (http://50.255.35.37:8080/).
+
 # create temporary directory and download the scRNA-seq data:
 if(dir.exists("temp_folder")==FALSE) {
     dir.create(path = "temp_folder")

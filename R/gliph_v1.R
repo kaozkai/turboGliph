@@ -27,7 +27,7 @@ gliph_v1 <- function(cdr3,
     # 2. local clustering
     # a. get local motifs
     motifs <- lapply(X = ks, 
-           FUN = get_motifs,
+           FUN = get_motifs_v1,
            cdr3 = cdr3, 
            cdr3_ref = cdr3_ref, 
            B = B,
@@ -40,7 +40,7 @@ gliph_v1 <- function(cdr3,
     future::plan(future::multisession, workers = cores)
     motif_enrichment <- do.call(rbind, future.apply::future_lapply(
         X = ks, 
-        FUN = get_motif_enrichment, 
+        FUN = get_motif_enrichment_v1, 
         m = motifs, 
         B = B, 
         cores = cores,
@@ -49,7 +49,7 @@ gliph_v1 <- function(cdr3,
     
     
     # c. add filter flag
-    motif_enrichment <- get_motif_filter(
+    motif_enrichment <- get_motif_filter_v1(
         ks = ks,
         m = motif_enrichment, 
         min_p = control$filtering$local_min_p, 
@@ -79,6 +79,9 @@ gliph_v1 <- function(cdr3,
                 motif_enrichment = motif_enrichment,
                 control = control))
 }
+
+
+
 
 
 # Description:
@@ -134,6 +137,7 @@ get_control <- function(control_in) {
 }
 
 
+
 # Description:
 # Check parameters in list control.
 check_control <- function(control) {
@@ -142,74 +146,74 @@ check_control <- function(control) {
 }
 
 
-# Description:
-# x = k in k-mer
-get_kmers_freq_ref <- function(x, 
-                               cdr3, 
-                               N, 
-                               B, 
-                               relevant_motifs, 
-                               cores){
-    
-    get_qgrams <- function(x, q, cdr3, N, relevant_motifs) {
-        draw_cdr3 <- sample(x = cdr3, size = N, replace = TRUE)
-        o <- stringdist::qgrams(draw_cdr3, q = q)
-        if(ncol(o)==0) {
-            return(NA)
-        }
-        o <- o[1,]
-        o <- o[names(o) %in% relevant_motifs]
-        if(length(o)==0) {
-            return(NA)
-        }
-        return(o)
-    }
-    
-    future::plan(future::multisession, workers = cores)
-    o <- future.apply::future_lapply(
-        X = 1:B, 
-        q = x,
-        N = N, 
-        relevant_motifs = relevant_motifs, 
-        cdr3 = cdr3,
-        FUN = get_qgrams,
-        future.seed = TRUE)
-    future::plan(future::sequential())
-    return(o)
-}
-
-
-# Description:
-# x = k in k-mer
-get_kmers_freq_sample <- function(x, 
-                                  cdr3, 
-                                  min_o){
-    
-    o <- stringdist::qgrams(cdr3, q = x)
-    if(ncol(o)==0) {
-        return(NA)
-    }
-    o <- o[1, o[1,]>=min_o]
-    if(length(o)==0) {
-        return(NA)
-    }
-    return(o)
-    # return(data.frame(motif = colnames(o), 
-    #                   f = o[1,]))
-}
-
 
 # Description:
 # Computes motif frequencies for a sample and reference
 # uses functions:
 # * get_kmers_freq_ref
 # * get_kmers_freq_sample
-get_motifs <- function(cdr3, 
+get_motifs_v1 <- function(cdr3, 
                        cdr3_ref, 
                        B, 
                        ks, 
                        cores, 
                        min_o) {
+    
+    # Description:
+    # x = k in k-mer
+    get_kmers_freq_ref <- function(x, 
+                                   cdr3, 
+                                   N, 
+                                   B, 
+                                   relevant_motifs, 
+                                   cores){
+        
+        get_qgrams <- function(x, q, cdr3, N, relevant_motifs) {
+            draw_cdr3 <- sample(x = cdr3, size = N, replace = TRUE)
+            o <- stringdist::qgrams(draw_cdr3, q = q)
+            if(ncol(o)==0) {
+                return(NA)
+            }
+            o <- o[1,]
+            o <- o[names(o) %in% relevant_motifs]
+            if(length(o)==0) {
+                return(NA)
+            }
+            return(o)
+        }
+        
+        future::plan(future::multisession, workers = cores)
+        o <- future.apply::future_lapply(
+            X = 1:B, 
+            q = x,
+            N = N, 
+            relevant_motifs = relevant_motifs, 
+            cdr3 = cdr3,
+            FUN = get_qgrams,
+            future.seed = TRUE)
+        future::plan(future::sequential())
+        return(o)
+    }
+    
+    
+    # Description:
+    # x = k in k-mer
+    get_kmers_freq_sample <- function(x, 
+                                      cdr3, 
+                                      min_o){
+        
+        o <- stringdist::qgrams(cdr3, q = x)
+        if(ncol(o)==0) {
+            return(NA)
+        }
+        o <- o[1, o[1,]>=min_o]
+        if(length(o)==0) {
+            return(NA)
+        }
+        return(o)
+        # return(data.frame(motif = colnames(o), 
+        #                   f = o[1,]))
+    }
     
     # find motifs in sample
     motif_sample <- lapply(
@@ -241,7 +245,7 @@ get_motifs <- function(cdr3,
 # Description:
 # Computes motif enrichment with data collected by function:
 # * get_motifs
-get_motif_enrichment <- function(x, 
+get_motif_enrichment_v1 <- function(x, 
                                  m, 
                                  B, 
                                  cores) {
@@ -295,7 +299,7 @@ get_motif_enrichment <- function(x,
 # Given data from function get_motif_enrichment, this function adds a 
 # filter column with filter = T if motif is enriched (given the input 
 # standards) and filter = F if not-enriched
-get_motif_filter <- function(m, 
+get_motif_filter_v1 <- function(m, 
                              ks, 
                              min_p, 
                              min_ove, 
@@ -312,9 +316,11 @@ get_motif_filter <- function(m,
 }
 
 
+
+
 # Description:
 # Look for enriched motifs in CDR3s. CDR3 sequence pairs of local 
-# clusters are returned
+# clusters are returned. Used by gliph_v1 and gliph_v2.
 get_local_pair <- function(cdr3, 
                            motif) {
     # if no enriched motifs
@@ -340,7 +346,7 @@ get_local_pair <- function(cdr3,
 
 
 # Description:
-# Look for pairs 
+# Look for pairs of global connections. Used by gliph_v1 and gliph_v2.
 get_global_pairs <- function(cdr3, 
                              global_max_dist) {
     # Jan is looping over all sequences and computing distances with the rest.
