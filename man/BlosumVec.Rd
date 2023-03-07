@@ -11,7 +11,8 @@ An object of class \code{character} of length 112.
 data(BlosumVec)
 }
 \description{
-\code{"BlosumVec"} is a vector whose elements represent amino acid pairs in the one-letter code that have a
+\code{"BlosumVec"} is a vector whose elements represent amino acid pairs in the 
+one-letter code that have a
 BLOSUM62 score >= 0. This information is used by GLIPH2 to cluster only global similarities whose different
 amino acids are interpreted as interchangeable according to the BLOSUM62 matrix.
 }
