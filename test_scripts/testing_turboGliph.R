@@ -1,47 +1,56 @@
+# This script contains first benchmarking results. Not reproducible, yet. 
+# More tests needed with seed.
+
+
+#### Inputs ####
 require(turboGliph)
 data("hs_CD8_ref")
 
 data_sample <- hs_CD8_ref[sample(x = 1:nrow(hs_CD8_ref), size = 2000, replace = F), 1:3]
-data_sample$sample_id <- "s"
-
 data_ref <- hs_CD8_ref[, 1:3]
 ks <- c(2, 3, 4)
 B <- 1000
 cores <- 1
 
+control_input <- list(
+    B = 1000,
+    global_max_dist = 1,
+    local_min_p = 0.05, 
+    local_min_ove = c(10^3, 10^2, 10^1), 
+    local_min_o = 3,
+    trim_flanks = FALSE,
+    flank_size = 3)
+
 source("R/util_v1.R")
 source("R/util_v2.R")
 source("R/util_v1_v2.R")
-source("R/gliph_v1.R")
-source("R/gliph_v2.R")
+source("R/gliph.R")
 
 
-#### Gliph 1-2 + Jan's versions #####
+#### Run ####
+out_v1 <- gliph(data_sample = data_sample,
+                data_ref = data_ref,
+                ks = ks,
+                cores = cores,
+                version = 1,
+                control = control_input)
+
+out_v2 <- gliph(data_sample = data_sample,
+                data_ref = data_ref,
+                ks = ks,
+                cores = cores,
+                version = 2,
+                control = control_input)
+
+out_v3 <- gliph(data_sample = data_sample,
+                data_ref = data_ref,
+                ks = ks,
+                cores = cores,
+                version = 3,
+                control = control_input)
 
 
-t_gliph_v1_a <- Sys.time()
-o1 <- gliph_v1(
-    data_sample = data_sample,
-    data_ref = data_ref,
-    ks = ks,
-    B = B,
-    cores = cores,
-    control = NULL)
-t_gliph_v1_b <- Sys.time()
-
-
-t_gliph_v2_a <- Sys.time()
-o2 <- gliph_v2(
-    data_sample = data_sample,
-    data_ref = data_ref,
-    ks = ks,
-    cores = cores,
-    control = NULL)
-t_gliph_v2_b <- Sys.time()
-
-
-t_jan_gliph_v1_a <- Sys.time()
-o3 <- turboGliph::turbo_gliph(
+jan_v1 <- turboGliph::turbo_gliph(
     cdr3_sequences = data_sample,
     result_folder = "/home/sktron/Desktop/tmp/",
     refdb_beta = data_ref,
@@ -51,107 +60,30 @@ o3 <- turboGliph::turbo_gliph(
     boundary_size = 0,
     cluster_min_size = 1,
     accept_sequences_with_C_F_start_end = FALSE)
-t_jan_gliph_v1_b <- Sys.time()
 
 
-t_jan_gliph_v2_a <- Sys.time()
-o4 <- turboGliph::gliph2(
+jan_v2 <- turboGliph::gliph2(
     cdr3_sequences = data_sample,
     result_folder = "/home/sktron/Desktop/tmp/",
     refdb_beta = data_ref,
     lcminp = 0.05,
-    # gccutoff = 1,
-    # structboundaries = F,
-    # boundary_size = 0,
-    # cluster_min_size = 1,
     accept_sequences_with_C_F_start_end = FALSE)
-t_jan_gliph_v2_b <- Sys.time()
-
-
-t_gliph_v
-
-o1 <- o1[[1]]
-o2 <- o2[[1]]
-
-e1 <- o1$motif_enrichment
-e2 <- o2$motif_enrichment
-e3 <- o3$motif_enrichment$all_motifs
-e4 <- o4$motif_enrichment$all_motifs
-
-
-e1 <- e1[e1$filter == TRUE,]
-e2 <- e2[e2$filter == TRUE,]
-e3 <- o3$motif_enrichment$selected_motifs
-e4 <- o4$motif_enrichment$selected_motifs
-
-
-intersect(e1$motif, e3$Motif)
-setdiff(e1$motif, e3$Motif)
-setdiff(e3$Motif, e1$motif)
-
-
-t <- o1$global_pairs
-length(unique(c(unique(cdr3)[t[, 1]],
-                unique(cdr3)[t[, 2]])))
-unique_t <- unique(c(unique(cdr3)[t[, 1]],
-                     unique(cdr3)[t[, 2]]))
-
-
-nrow(o1$global_pairs)
-w <- o2$connections
-w <- w[w[, 3]=="global", ]
-length(unique(c(w[, 1], w[, 2])))
-unique_w <- unique(c(w[, 1], w[, 2]))
-
-
-setdiff(unique_t, unique_w)
-setdiff(unique_w, unique_t)
 
 
 
+#### Compare results #####
+e_v1 <- out_v1$clust$CDR3b$motif_enrichment
+e_v2 <- out_v2$clust$CDR3b$motif_enrichment
+e_v3 <- out_v3$clust$CDR3b$motif_enrichment
 
-w <- cbind(w, stringdist::stringdist(a = w[,1], b = w[,2], 
-                                     method = "hamming"))
-# w <- w[w[, 3] == "global", ]
-w <- w[, 4] == 1
-table(w[,4])
-
-
-d <- stringdist::stringdistmatrix(a = cdr3, b = cdr3, method = "hamming")
-q <- which(d<=1, arr.ind = T)
+e_jan_v1 <- jan_v1$motif_enrichment$all_motifs
+e_jan_v2 <- jan_v2$motif_enrichment$all_motifs
 
 
+e_v1 <- e_v1[e_v1$filter == TRUE,]
+e_v2 <- e_v2[e_v2$filter == TRUE,]
+e_v3 <- e_v3[e_v3$filter == TRUE,]
 
-
-
-
-
-
-#### Gliph 2 #####
-require(turboGliph)
-data("hs_CD8_ref")
-
-cdr3 <- sample(x = hs_CD8_ref$data$CDR3b, size = 5000, replace = F)
-cdr3_ref <- hs_CD8_ref$data$CDR3b
-ks <- c(2, 3, 4)
-B <- 1000
-cores <- 1
-control <- NULL
-source("R/gliph_v2.R")
-control <- get_control(control_in = control)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+e_jan_v1 <- jan_v1$motif_enrichment$selected_motifs
+e_jan_v2 <- jan_v2$motif_enrichment$selected_motifs
 
