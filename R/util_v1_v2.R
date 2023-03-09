@@ -1,8 +1,10 @@
 # Description:
 # Setup control list.
+# control_in: user generated list (if missing -> use default)
 get_control <- function(control_in) {
     
     control <- list(
+        B = 1000,
         global_max_dist = 1,
         local_min_p = 0.05, 
         local_min_ove = c(10^3, 10^2, 10^1), 
@@ -10,29 +12,19 @@ get_control <- function(control_in) {
         trim_flanks = FALSE,
         flank_size = 3)
     
+    # if missing control_in -> use default values
     if(missing(control_in)|is.null(control_in)) {
         return(control)
     }
-    
-    # here run check on individual parameters in control
-    # check_control(control_in)
-    
-    # if failed check -> stop
-    # else return control
-    
     
     # edit control by user-defined control_in
     # There are packages to update list given another list, but here we can 
     # live with the following "inefficiency" as the list is generally small 
     # (~5 elements)
+    ns <- names(control_in)
     for(i in 1:length(control_in)) {
-        n_i <- names(control_in)[i]
-        for(j in 1:length(control_in[[i]])) {
-            n_j <- names(control_in[[i]])[j]
-            control[[n_i]][[n_j]] <- control_in[[n_i]][[n_j]]
-        }
+        control[[ns[i]]] <- control_in[[ns[i]]]
     }
-    
     return(control)
 }
 
